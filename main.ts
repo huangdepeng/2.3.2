@@ -521,7 +521,8 @@ namespace hicbit {
     //% weight=90 blockGap=50 blockId=hicbit_setCodedmotor block="Set |port %port| motor|angle %angle|and |speed %speed|"
     //% angle.min=-360 angle.max=360
     export function hicbit_setCodedmotor(port: hicbit_Coded_motor_Port,angle: number,speed:Coded_motor_speed) {
-        let multiple: number = 1;   //倍数
+        let angle_H: number = 0;    //角度高8位
+        let angle_L: number = 0;    //角度低8位
         let turn: number = 0;
         let buf = pins.createBuffer(7);
 
@@ -533,16 +534,17 @@ namespace hicbit {
         else
             turn = 0;           //正转
         
-        if (angle < 10)
-            multiple = 1;
-        else {
-            multiple = 10;
-            angle /= 10;
+        if (angle >= 256)
+        {
+            angle_H = angle / 0xff;
+            angle_L = angle % 0xff;
         }
+        else
+            angle_L = angle;
         
         buf[0] = 0x59;      //标志位
-        buf[1] = multiple;  //倍数
-        buf[2] = angle;     //角度
+        buf[1] = angle_H;   //倍数
+        buf[2] = angle_L;   //角度
         buf[3] = turn;      //正反转
         buf[4] = port - 1;  //端口
         buf[5] = 0;         //圈数
